@@ -32,7 +32,7 @@ export const CartProvider = ({ children }) => {
         fetchCartItems();
     }, [user]);
 
-    const addCartItem = async (itemId, selectedTallas) => {
+    const addCartItem = async (itemId, selectedTallas, itemImage) => {
         if (!user) return console.error('Usuario no autenticado');
 
         const userId = user.uid;
@@ -57,7 +57,7 @@ export const CartProvider = ({ children }) => {
                     }
                 });
             } else {
-                updatedCart.push({ id: itemId, tallas: selectedTallas });
+                updatedCart.push({ id: itemId, tallas: selectedTallas ,itemImage :itemImage });
             }
 
             await setDoc(cartDocRef, { items: updatedCart });

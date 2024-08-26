@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { useUser } from "../UserContext";
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   const { user, handleLogout } = useUser();
@@ -29,7 +30,7 @@ export default function ProfilePage() {
           {/* Perfil del Usuario */}
           <div className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row items-center">
-              <img
+              <Image
                 src={user.photoURL}
                 alt="User Avatar"
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover mb-4 sm:mb-0 sm:mr-4"

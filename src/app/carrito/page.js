@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { firestore } from "../firebase";
+import { firestore,storage } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { Button } from "@nextui-org/react";
+import { ref, getDownloadURL } from "firebase/storage";
+import { Button, Card, Text, Spacer, Loading, Progress } from "@nextui-org/react";
 import { useUser } from "../UserContext";
 import { useRouter } from "next/navigation";
 import { useCart } from "../CartContext";
+import Image from "next/image";
 
 function CartPage() {
   const { cart, removeCartItem, clearCart } = useCart();
@@ -16,9 +18,9 @@ function CartPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const userString = localStorage.getItem("user"); // Obtén el string del objeto JSON almacenado
-    const user = userString ? JSON.parse(userString) : null; // Parsealo a un objeto si existe
-    const isAuthenticated = user !== null; // Verifica si el usuario está autenticado
+    const userString = localStorage.getItem("user");
+    const user = userString ? JSON.parse(userString) : null;
+    const isAuthenticated = user !== null;
 
     if (!isAuthenticated) {
       router.push("/login");
@@ -33,10 +35,24 @@ function CartPage() {
             const docRef = doc(firestore, "items", item.id);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
+              const productData = docSnap.data();
+              let imageUrl = "";
+    
+              // Obtener URL de la imagen si existe
+              if (productData.img) {
+                const storageRef = ref(storage, productData.img);
+                try {
+                  imageUrl = await getDownloadURL(storageRef);
+                } catch (error) {
+                  console.error("Error fetching image URL:", error);
+                }
+              }
+    
               return {
-                ...docSnap.data(),
+                ...productData,
                 id: item.id,
                 selectedTallas: item.tallas,
+                imageUrl: imageUrl, // Añadir imageUrl a los datos del producto
               };
             }
             return null;
@@ -77,67 +93,88 @@ function CartPage() {
   };
 
   if (loading) {
-    return <div className="text-center">Cargando carrito...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Progress size="lg">Cargando carrito...</Progress>
+      </div>
+    );
   }
 
   if (cartDetails.length === 0) {
-    return <div className="text-center">Tu carrito está vacío.</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p h3>Tu carrito está vacío.</p>
+      </div>
+    );
   }
 
   const total = calculateTotal();
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <p h1 className="text-3xl font-bold text-white-100 mb-6 text-center">
         Carrito de Compras
-      </h1>
-      <div className="space-y-4">
+      </p>
+      <div className="space-y-6">
         {cartDetails.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col md:flex-row items-center justify-between border-b pb-4"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16">
-                <img
-                  src={item.imageUrl}
-                  alt={item.nombre}
-                  className="w-full h-full object-cover rounded"
-                />
+          <Card key={item.id} className="p-4 shadow-md">
+            <div className="flex flex-col md:flex-row items-center">
+              <div className="flex items-center space-x-4">
+               <div className="relative w-24 h-24">
+                  {item.imageUrl ? (
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.nombre}
+                      layout="fill"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <p className="text-red-500">Imagen no disponible</p>
+                  )}
+                </div>
+                <div>
+                  <p h3 className="font-semibold">
+                    {item.nombre}
+                  </p>
+                  <p>
+                    Precio: {item.valor_formateado}
+                  </p>
+                  <p className=" mt-2">
+                    Tallas seleccionadas:
+                  </p>
+                  <ul className="list-disc list-inside">
+                    {Object.keys(item.selectedTallas).map((talla) => (
+                      <li key={talla}>
+                        {talla.toUpperCase()}: {item.selectedTallas[talla]}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  {item.nombre}
-                </h2>
-                <p className="text-gray-600">Precio: {item.valor_formateado}</p>
-                <p className="text-gray-600">Tallas seleccionadas:</p>
-                <ul className="list-disc list-inside">
-                  {Object.keys(item.selectedTallas).map((talla) => (
-                    <li key={talla}>
-                      {talla.toUpperCase()}: {item.selectedTallas[talla]}
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-4 md:mt-0 md:ml-auto">
+                <Button
+                  color="error"
+                  shadow
+                  auto
+                  onPress={() => handleRemoveItem(item.id)}
+                >
+                  Eliminar
+                </Button>
               </div>
             </div>
-            <div className="mt-4 md:mt-0">
-              <Button
-                color="error"
-                shadow
-                auto
-                onPress={() => handleRemoveItem(item.id)}
-              >
-                Eliminar
-              </Button>
-            </div>
-          </div>
+          </Card>
         ))}
       </div>
       <div className="mt-8 flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-gray-800">
+        <p h2 className="text-2xl font-semibold">
           Total: ${total.toFixed(2)}
-        </h2>
-        <Button color="warning" shadow auto onPress={handleClearCart}>
+        </p>
+        <Button
+          color="warning"
+          shadow
+          auto
+          onPress={handleClearCart}
+        >
           Vaciar Carrito
         </Button>
       </div>

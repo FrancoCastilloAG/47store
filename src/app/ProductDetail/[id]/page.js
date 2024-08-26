@@ -4,10 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { firestore, storage } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { Button, Image, Input, Progress } from "@nextui-org/react";
+import { Button, Input, Progress } from "@nextui-org/react";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../../CartContext";
 import { useUser } from "../../UserContext";
+import Image from "next/image";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -17,7 +18,7 @@ function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedTallas, setSelectedTallas] = useState({});
   const [showWarning, setShowWarning] = useState(false);
-  const [isAddingToCart, setIsAddingToCart] = useState(false); // New state for progress
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -65,10 +66,12 @@ function ProductDetail() {
   }, [id, user, router]);
 
   const handleTallaChange = (talla, value) => {
-    setSelectedTallas((prev) => ({
-      ...prev,
-      [talla]: Math.max(0, Math.min(value, product.tallas[talla])),
-    }));
+    if (product) {
+      setSelectedTallas((prev) => ({
+        ...prev,
+        [talla]: Math.max(0, Math.min(value, product.tallas[talla])),
+      }));
+    }
   };
 
   const formatCurrencyCLP = (value) => {
@@ -93,7 +96,8 @@ function ProductDetail() {
     if (product && Object.values(selectedTallas).some((count) => count > 0)) {
       setIsAddingToCart(true);
       try {
-        await addCartItem(product.id, selectedTallas);
+        console.log("producto iamgen url  ", product.imageUrl)
+        await addCartItem(product.id, selectedTallas,product.imageUrl);
       } catch (error) {
         console.error("Error adding to cart:", error);
       } finally {
@@ -111,24 +115,18 @@ function ProductDetail() {
   }
 
   if (!product) {
-    return (
-      <div className="text-center text-white">Producto no encontrado.</div>
-    );
+    return <div className="text-center text-white">Producto no encontrado.</div>;
   }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 text-white min-h-screen">
       <div className="flex flex-col md:flex-row max-w-4xl mx-auto rounded-lg shadow-md overflow-hidden">
-        <div className="md:w-1/2">
+        <div className="md:w-1/2 relative h-96">
           {product.imageUrl && (
             <Image
-              shadow="sm"
-              radius="none"
-              width="100%"
-              height="auto"
-              alt={product.nombre}
-              className="object-cover"
               src={product.imageUrl}
+              alt={product.nombre}
+              fill
             />
           )}
         </div>
@@ -137,7 +135,7 @@ function ProductDetail() {
             <h1 className="text-3xl font-bold mb-2">{product.nombre}</h1>
             <p className="text-sm mb-4">{product.descripcion}</p>
             <p className="text-xl font-semibold mb-4">
-              Precio: {product.valor_formateado}
+              Precio: {formatCurrencyCLP(product.valor)}
             </p>
           </div>
           <div className="space-y-2">
@@ -164,8 +162,7 @@ function ProductDetail() {
               ))}
             {showWarning && (
               <p className="text-red-500 font-semibold">
-                Stock Desfazado 1hr consultar disponibilidad si hay pocas
-                unidades.
+                Stock Desfazado 1hr consultar disponibilidad si hay pocas unidades.
               </p>
             )}
             <div className="mt-4">

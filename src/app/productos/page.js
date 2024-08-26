@@ -6,13 +6,13 @@ import {
   Card,
   CardBody,
   CardFooter,
-  Image,
   Button,
   Progress,
 } from "@nextui-org/react";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../CartContext";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Importar el componente Image de Next.js
 
 function Products() {
   const { addCartItem } = useCart(); // Obtener la función addCartItem del contexto del carrito
@@ -75,15 +75,11 @@ function Products() {
           >
             <CardBody className="overflow-hidden p-0">
               {item.imageUrl && (
-                <Image
-                  shadow="sm"
-                  radius="lg"
-                  width="100%"
-                  height="auto"
-                  alt={item.nombre}
-                  className="w-full object-cover h-[140px]"
-                  src={item.imageUrl}
-                />
+                <div className="relative w-full h-[140px]">
+                  {" "}
+                  {/* Wrapper para manejar el layout del componente Image */}
+                  <Image src={item.imageUrl} alt={item.nombre} fill />
+                </div>
               )}
             </CardBody>
             <CardFooter className="flex justify-center items-center p-4 text-small">

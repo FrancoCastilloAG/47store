@@ -18,6 +18,8 @@ import {
 import { FaShoppingCart } from "react-icons/fa";
 import { useUser } from "../app/UserContext.js";
 import { useCart } from "../app/CartContext.js";
+import Image from "next/image";
+import logo from "../images/cbstamp.jpg";
 
 export default function Example() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,7 +44,14 @@ export default function Example() {
         {/* Logo and Navigation Menu */}
         <div className="flex items-center flex-grow justify-center sm:justify-between">
           <div className="flex-shrink-0">
-            {/* Logo */}
+            <Image
+              src={logo}
+              alt="Logo"
+              className="object-contain"
+              width={50} // Adjust these values as needed
+              height={50} // Adjust these values as needed
+              sizes="(max-width: 640px) 40px, (max-width: 1024px) 50px, 60px"
+            />
           </div>
 
           {/* Menu Items for Large Screens */}
