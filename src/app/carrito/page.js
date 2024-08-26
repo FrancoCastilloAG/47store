@@ -167,7 +167,7 @@ function CartPage() {
       </div>
       <div className="mt-8 flex justify-between items-center">
         <p h2 className="text-2xl font-semibold">
-          Total: ${total.toFixed(2)}
+          Total: ${total.toFixed(3)}
         </p>
         <Button
           color="warning"

@@ -121,20 +121,21 @@ function ProductDetail() {
   return (
     <div className="p-4 md:p-6 lg:p-8 text-white min-h-screen">
       <div className="flex flex-col md:flex-row max-w-4xl mx-auto rounded-lg shadow-md overflow-hidden">
-        <div className="md:w-1/2 relative h-96">
+        <div className="md:w-1/2 relative h-48 md:h-96">
           {product.imageUrl && (
             <Image
               src={product.imageUrl}
               alt={product.nombre}
-              fill
+              layout="fill"
+              objectFit="cover"
             />
           )}
         </div>
-        <div className="md:w-1/2 p-6 flex flex-col justify-between">
+        <div className="md:w-1/2 p-4 md:p-6 flex flex-col justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">{product.nombre}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.nombre}</h1>
             <p className="text-sm mb-4">{product.descripcion}</p>
-            <p className="text-xl font-semibold mb-4">
+            <p className="text-lg md:text-xl font-semibold mb-4">
               Precio: {formatCurrencyCLP(product.valor)}
             </p>
           </div>
@@ -179,7 +180,7 @@ function ProductDetail() {
               </Button>
             </div>
             <div className="mt-4">
-              <span className="text-2xl font-semibold">
+              <span className="text-xl md:text-2xl font-semibold">
                 Total: {formatCurrencyCLP(totalValue)}
               </span>
             </div>
