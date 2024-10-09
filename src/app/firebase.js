@@ -15,14 +15,12 @@ import { getStorage } from 'firebase/storage';
     measurementId: "G-TEH7B4W8YV"
 }; */
 const firebaseConfig = {
-    apiKey: "AIzaSyBSawl7zz_hwMaKwJiHQ6JO4EFdK_0qP10",
-    authDomain: "cbsh-ba4a3.firebaseapp.com",
-/*     databaseURL: "https://cbsh-ba4a3-default-rtdb.firebaseio.com", */
-    projectId: "cbsh-ba4a3",
-    storageBucket: "cbsh-ba4a3.appspot.com",
-    messagingSenderId: "646551715214",
-    appId: "1:646551715214:web:4c4a9a4ae8363c8aed78df",
-    measurementId: "G-RTDC5ZR6V7"
+    apiKey: "AIzaSyAZ9ljZNdEvO_KiOR_Hx8n6tSlvjHhySxc",
+    authDomain: "store-f3ffe.firebaseapp.com",
+    projectId: "store-f3ffe",
+    storageBucket: "store-f3ffe.appspot.com",
+    messagingSenderId: "837292932874",
+    appId: "1:837292932874:web:f7e98e19fa85bbd9a584f3"
   };
 
 const firebaseApp = initializeApp(firebaseConfig);

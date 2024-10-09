@@ -4,18 +4,18 @@ import { useRouter } from "next/navigation";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { storage, firestore } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Input, Progress } from "@nextui-org/react";
+import { Input, Progress, Button } from "@nextui-org/react";
 
 function AddItem() {
   const [nombre, setNombre] = useState("");
   const [valor, setValor] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [tallas, setTallas] = useState({
-    xs: "",
-    s: "",
-    m: "",
-    l: "",
-    xl: "",
+    xs: 0,
+    s: 0,
+    m: 0,
+    l: 0,
+    xl: 0,
   });
   const [image, setImage] = useState(null);
   const [itemId, setItemId] = useState(null);
@@ -64,7 +64,7 @@ function AddItem() {
       nombre &&
       valor &&
       descripcion &&
-      Object.values(tallas).every((talla) => talla);
+      Object.values(tallas).every((talla) => talla >= 0); // Verificar que las tallas no sean negativas
     setFormValid(allFieldsFilled);
   }, [nombre, valor, descripcion, tallas]);
 
@@ -110,11 +110,11 @@ function AddItem() {
       setValor("");
       setDescripcion("");
       setTallas({
-        xs: "",
-        s: "",
-        m: "",
-        l: "",
-        xl: "",
+        xs: 0,
+        s: 0,
+        m: 0,
+        l: 0,
+        xl: 0,
       });
       setImage(null);
     } catch (error) {
@@ -131,16 +131,16 @@ function AddItem() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-800">Agregar Nuevo Item</h2>
-      <form className="space-y-4">
+    <div className="max-w-4xl mx-auto p-6 bg-black rounded-lg shadow-lg">
+      <h2 className="text-3xl font-semibold mb-6 text-white-800">Agregar Nuevo Item</h2>
+      <form className="space-y-6">
         <div>
           <Input
             type="text"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Nombre"
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full text-black"
           />
         </div>
         <div>
@@ -149,7 +149,7 @@ function AddItem() {
             value={valor}
             onChange={handleValueChange}
             placeholder="Valor (Ej: 1.234,56)"
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full text-black"
           />
         </div>
         <div>
@@ -158,20 +158,21 @@ function AddItem() {
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Descripción"
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full text-black"
           />
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        {/* Ajustamos el grid responsivo */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {Object.keys(tallas).map((talla) => (
             <div key={talla} className="flex flex-col items-center">
-              <label className="text-sm font-medium text-gray-700">{talla.toUpperCase()}</label>
+              <label className="text-sm font-medium text-white-700">{talla.toUpperCase()}</label>
               <Input
                 type="number"
                 name={talla}
                 value={tallas[talla]}
                 onChange={handleTallaChange}
-                placeholder={talla.toUpperCase()}
-                className="w-full p-1 border border-gray-300 rounded text-center text-sm"
+                placeholder="0"
+                className="w-full text-black text-center"
               />
             </div>
           ))}
@@ -180,17 +181,17 @@ function AddItem() {
           <Input
             type="file"
             onChange={handleImageChange}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full text-black"
           />
         </div>
-        <button
+        <Button
           type="button"
           onClick={handleUpload}
-          disabled={loading || !formValid} // Deshabilitar el botón si está cargando o el formulario no es válido
-          className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition disabled:bg-blue-300"
+          disabled={loading || !formValid}
+          className="w-full bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 disabled:bg-blue-300"
         >
           {loading ? "Subiendo..." : "Subir"}
-        </button>
+        </Button>
         {loading && (
           <Progress
             size="sm"

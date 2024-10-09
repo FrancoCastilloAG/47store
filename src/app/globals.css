@@ -1,57 +1,58 @@
+/* global.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Aplica el fondo negro y el texto blanco de forma global */
 html, body {
   @apply text-white bg-black;
-  height: 100%;
-  margin: 0;
 }
 
-body {
-  color: rgb(255,255,255);
-  background-color: rgb(0,0,0);
-}
-/* Aplica color celeste al borde de la navbar */
+/* Estilos para la barra de navegación personalizada */
 .navbar-custom {
-  @apply text-cyan-400 bg-black; 
-  border-bottom: 2px solid #00bcd4;/* Agrega borde celeste */
+  @apply bg-black text-pink-700 border-b-2 border-pink-400;
 }
 
-/* Opcionalmente, puedes definir otros estilos personalizados para los enlaces */
+/* Para los enlaces de la barra de navegación */
 .navbar-custom a {
-  @apply text-cyan-400 no-underline;
+  @apply text-pink-700 no-underline;
 }
 
 .navbar-custom a:hover {
-  @apply text-cyan-300;
-}
-/* Estilos para el menú de pantallas pequeñas */
-.navbar-menu-custom {
-  @apply bg-black border-b-2 border-cyan-400; /* Fondo negro y borde inferior celeste */
+  @apply text-pink-600;
 }
 
+/* Estilos para los menús móviles */
+.navbar-menu-custom {
+  @apply bg-black border-b-2 border-pink-400 text-pink-700;
+}
+
+/* Estilo de los íconos y los elementos del menú en móviles */
 .navbar-menu-item-custom {
-  @apply text-cyan-400; /* Letras celestes */
+  @apply text-pink-700;
 }
 
 .navbar-menu-item-custom:hover {
-  @apply text-cyan-300; /* Letras celestes al pasar el ratón */
+  @apply text-pink-600;
 }
 
-.navbar-menu-item-logout {
-  @apply text-red-400; /* Letras rojas para logout */
+/* Si se encuentra en la página actual, cambia a color rojo oscuro */
+.navbar-menu-item-custom[aria-current='page'] {
+  @apply text-red-900;
 }
+
+/* Estilos para el Dropdown */
 .dropdown-menu-custom {
-  @apply bg-black border-b-2 border-cyan-400 !important;
+  @apply bg-black border-b-2 border-pink-400 text-pink-700;
 }
 
 .dropdown-item-custom {
-  @apply text-cyan-400 !important;
+  @apply text-pink-700;
 }
 
 .dropdown-item-custom:hover {
-  @apply text-cyan-300 !important; /* Cambia el color de fondo en hover si es necesario */
+  @apply text-pink-600;
 }
 
 .dropdown-item-logout {

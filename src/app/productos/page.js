@@ -55,7 +55,7 @@ function Products() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-black p-4 md:p-6 lg:p-8">
       {loading && (
         <Progress
           size="sm"
@@ -75,17 +75,27 @@ function Products() {
           >
             <CardBody className="overflow-hidden p-0">
               {item.imageUrl && (
-                <div className="relative w-full h-[140px]">
+                <div className="relative w-full h-[140px] lg:h-[180px]">
                   {" "}
                   {/* Wrapper para manejar el layout del componente Image */}
-                  <Image src={item.imageUrl} alt={item.nombre} fill />
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.nombre}
+                    layout="fill" // Para que la imagen ocupe todo el contenedor
+                    objectFit="cover" // Mantiene la proporción de la imagen
+                    className="rounded-t-lg" // Para bordes redondeados si se quiere
+                  />
                 </div>
               )}
             </CardBody>
             <CardFooter className="flex justify-center items-center p-4 text-small">
               <div className="text-center">
                 <b className="text-default-100">{item.nombre}</b>
-                <p className="text-default-100">{item.valor_formateado}</p>
+                {item.cantidad > 0 ? (
+                  <p className="text-default-100">{item.valor_formateado}</p>
+                ) : (
+                  <p className="text-red-500">Fuera de stock</p> // Si la cantidad es 0, mostramos "Fuera de stock" en rojo
+                )}
               </div>
             </CardFooter>
           </Card>

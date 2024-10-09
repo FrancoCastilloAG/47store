@@ -21,6 +21,7 @@ const Login = () => {
         // El usuario no existe, así que lo creamos
         await setDoc(userDocRef, {
           uid: user.uid,
+          photoURL: user.photoURL,
           displayName: user.displayName,
           email: user.email,
           role: "user", // Asigna un rol predeterminado o ajusta según sea necesario
@@ -51,6 +52,7 @@ const Login = () => {
         displayName: user.displayName,
         email: user.email,
         role: userDoc.exists() ? userDoc.data().role : "user", // Guarda el rol del usuario
+        photoURL: user.photoURL,
       });
 
     } catch (error) {
