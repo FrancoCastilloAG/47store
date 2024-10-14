@@ -7,7 +7,7 @@ import {
   CardBody,
   CardFooter,
   Button,
-  Progress,
+  Spinner,
 } from "@nextui-org/react";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../CartContext";
@@ -55,46 +55,41 @@ function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen p-4 md:p-6 lg:p-8">
       {loading && (
-        <Progress
-          size="sm"
-          isIndeterminate
-          aria-label="Loading..."
-          className="max-w-md mx-auto"
-        />
+        <div className="flex items-center justify-center min-h-screen">
+          <Spinner size="lg" />
+        </div>
       )}
-      <div className="gap-2 grid grid-cols-2 sm:grid-cols-4">
+      <div className="gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {items.map((item, index) => (
           <Card
             shadow="sm"
             key={index}
             isPressable
-            className="bg-black"
-            onClick={() => handleAddToCart(item.id)} // Redirige al hacer clic en cualquier parte del Card
+            onClick={() => handleAddToCart(item.id)}
+            className="transition-transform transform hover:scale-105" // Añadir un efecto hover
           >
-            <CardBody className="overflow-hidden p-0">
+            <CardBody className="p-0">
               {item.imageUrl && (
-                <div className="relative w-full h-[140px] lg:h-[180px]">
-                  {" "}
-                  {/* Wrapper para manejar el layout del componente Image */}
+                <div className="relative w-full h-[300px] overflow-hidden"> {/* Altura fija para el contenedor de la imagen */}
                   <Image
                     src={item.imageUrl}
                     alt={item.nombre}
-                    layout="fill" // Para que la imagen ocupe todo el contenedor
-                    objectFit="cover" // Mantiene la proporción de la imagen
-                    className="rounded-t-lg" // Para bordes redondeados si se quiere
+                    layout="fill"
+                    objectFit="contain" // Cambiar a "contain" para que la imagen se ajuste completamente
+                    className="transition-transform duration-300 ease-in-out" // Añadir una transición a la imagen
                   />
                 </div>
               )}
             </CardBody>
-            <CardFooter className="flex justify-center items-center p-4 text-small">
-              <div className="text-center">
-                <b className="text-default-100">{item.nombre}</b>
+            <CardFooter> {/* Padding para el footer */}
+              <div>
+                <b>{item.nombre}</b>
                 {item.cantidad > 0 ? (
-                  <p className="text-default-100">{item.valor_formateado}</p>
+                  <p>{item.valor_formateado}</p>
                 ) : (
-                  <p className="text-red-500">Fuera de stock</p> // Si la cantidad es 0, mostramos "Fuera de stock" en rojo
+                  <p className="text-red-500">Fuera de stock</p> // Mensaje en rojo si está fuera de stock
                 )}
               </div>
             </CardFooter>
@@ -102,6 +97,7 @@ function Products() {
         ))}
       </div>
     </div>
+
   );
 }
 

@@ -111,7 +111,7 @@ function ProductDetail() {
   const isButtonDisabled = !Object.values(selectedTallas).some((count) => count > 0);
 
   if (loading) {
-    return <div className="text-center text-white">Cargando...</div>;
+    return <div className="min-h-screen bg-black text-center text-white">Cargando...</div>;
   }
 
   if (!product) {

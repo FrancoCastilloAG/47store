@@ -60,7 +60,7 @@ export default function VentasPage() {
   const getStatusColor = (status) => {
     switch (status) {
       case "confirmacion":
-        return "bg-yellow-500 text-gray-900"; // Color amarillo para "confirmacion"
+        return "bg-yellow-500"; // Color amarillo para "confirmacion"
       case "pagado":
         return "bg-green-500 text-white"; // Color verde para "pagado"
       default:
@@ -69,27 +69,27 @@ export default function VentasPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+    <div className="min-h-screen max-w-4xl mx-auto p-4 sm:p-6">
       {/* Título */}
-      <h1 className="text-2xl sm:text-3xl font-bold text-white-900 mb-6">Todas las Ventas</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Todas las Ventas</h1>
 
       {/* Tabla de ventas */}
       <div className="shadow-md rounded-lg p-4 sm:p-6 mb-6">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y bg-black text-white">
+          <table className="min-w-full divide-y">
             <thead>
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fecha</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Monto</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Acción</th>
+                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Fecha</th>
+                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Monto</th>
+                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Estado</th>
+                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Acción</th>
               </tr>
             </thead>
             <tbody>
               {ventas.map((venta) => (
                 <tr key={venta.id}>
-                  <td className="px-3 py-4 text-sm text-gray-400">{venta.date}</td>
-                  <td className="px-3 py-4 text-sm text-gray-400">{venta.total}</td>
+                  <td className="px-3 py-4 text-sm ">{venta.date}</td>
+                  <td className="px-3 py-4 text-sm ">{venta.total}</td>
                   <td className="px-3 py-4 text-sm">
                     <span className={`px-2 py-1 rounded ${getStatusColor(venta.status)}`}>
                       {venta.status}

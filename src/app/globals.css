@@ -6,55 +6,5 @@
 
 /* Aplica el fondo negro y el texto blanco de forma global */
 html, body {
-  @apply text-white bg-black;
-}
-
-/* Estilos para la barra de navegación personalizada */
-.navbar-custom {
-  @apply bg-black text-pink-700 border-b-2 border-pink-400;
-}
-
-/* Para los enlaces de la barra de navegación */
-.navbar-custom a {
-  @apply text-pink-700 no-underline;
-}
-
-.navbar-custom a:hover {
-  @apply text-pink-600;
-}
-
-/* Estilos para los menús móviles */
-.navbar-menu-custom {
-  @apply bg-black border-b-2 border-pink-400 text-pink-700;
-}
-
-/* Estilo de los íconos y los elementos del menú en móviles */
-.navbar-menu-item-custom {
-  @apply text-pink-700;
-}
-
-.navbar-menu-item-custom:hover {
-  @apply text-pink-600;
-}
-
-/* Si se encuentra en la página actual, cambia a color rojo oscuro */
-.navbar-menu-item-custom[aria-current='page'] {
-  @apply text-red-900;
-}
-
-/* Estilos para el Dropdown */
-.dropdown-menu-custom {
-  @apply bg-black border-b-2 border-pink-400 text-pink-700;
-}
-
-.dropdown-item-custom {
-  @apply text-pink-700;
-}
-
-.dropdown-item-custom:hover {
-  @apply text-pink-600;
-}
-
-.dropdown-item-logout {
-  @apply text-red-400;
+  @apply text-black bg-white;
 }

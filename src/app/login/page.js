@@ -65,7 +65,7 @@ const Login = () => {
       <div className="mb-6">
 {/*         <Image src={logo} alt="Company Logo" className="h-30 w-auto" /> */}
       </div>
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
+      <div className="p-8 rounded-lg shadow-lg max-w-sm w-full">
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">Inicio de Sesión</h1>
         <button
           onClick={handleSignIn}
