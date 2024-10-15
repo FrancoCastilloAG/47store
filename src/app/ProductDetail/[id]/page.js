@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { firestore, storage } from "../../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { Button, Input, Progress } from "@nextui-org/react";
+import { Button, Input, Spinner } from "@nextui-org/react";
 import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../../CartContext";
 import { useUser } from "../../UserContext";
@@ -97,7 +97,7 @@ function ProductDetail() {
       setIsAddingToCart(true);
       try {
         console.log("producto iamgen url  ", product.imageUrl)
-        await addCartItem(product.id, selectedTallas,product.imageUrl);
+        await addCartItem(product.id, selectedTallas, product.imageUrl);
       } catch (error) {
         console.error("Error adding to cart:", error);
       } finally {
@@ -111,15 +111,19 @@ function ProductDetail() {
   const isButtonDisabled = !Object.values(selectedTallas).some((count) => count > 0);
 
   if (loading) {
-    return <div className="min-h-screen bg-black text-center text-white">Cargando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner size="lg" />
+      </div>
+    );
   }
 
   if (!product) {
-    return <div className="text-center text-white">Producto no encontrado.</div>;
+    return <div className="text-center text-black">Producto no encontrado.</div>;
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 text-white min-h-screen">
+    <div className="p-4 md:p-6 lg:p-8 min-h-screen">
       <div className="flex flex-col md:flex-row max-w-4xl mx-auto rounded-lg shadow-md overflow-hidden">
         <div className="md:w-1/2 relative h-48 md:h-96">
           {product.imageUrl && (
@@ -154,7 +158,7 @@ function ProductDetail() {
                     onChange={(e) =>
                       handleTallaChange(talla, parseInt(e.target.value) || 0)
                     }
-                    className="w-20 bg-gray-800 text-white border-none"
+                    className="w-20"
                   />
                   <span className="text-sm text-gray-400">
                     {product.tallas[talla]} disponibles
@@ -173,27 +177,18 @@ function ProductDetail() {
                 auto
                 size="lg"
                 onPress={handleAddToCart}
-                disabled={isButtonDisabled}
+                disabled={isButtonDisabled || isAddingToCart} // Disable during the add-to-cart process
                 className={`w-full ${isButtonDisabled ? "bg-gray-500" : ""}`}
               >
-                {isAddingToCart ? "Agregando..." : "Agregar al carrito"}
+                {isAddingToCart ? <Spinner size="sm" color="default" /> : "Agregar al Carrito"}
               </Button>
             </div>
+
             <div className="mt-4">
               <span className="text-xl md:text-2xl font-semibold">
                 Total: {formatCurrencyCLP(totalValue)}
               </span>
             </div>
-            {isAddingToCart && (
-              <div className="mt-4">
-                <Progress
-                  color="primary"
-                  size="lg"
-                  value={100}
-                  status="success"
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>

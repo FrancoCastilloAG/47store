@@ -1,8 +1,7 @@
 "use client";
-
 import React, { useEffect, useState } from 'react';
 import { firestore } from "../firebase";
-import { collection, query, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, query, getDocs, updateDoc, writeBatch, orderBy, doc, getDoc } from "firebase/firestore";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -14,7 +13,7 @@ export default function VentasPage() {
   // Fetch ventas
   const fetchVentas = async () => {
     try {
-      const q = query(collection(firestore, "ventas"));
+      const q = query(collection(firestore, "ventas"), orderBy("date", "desc"));
       const querySnapshot = await getDocs(q);
       const ventasData = querySnapshot.docs.map((doc) => {
         const ventaData = doc.data();
@@ -43,18 +42,72 @@ export default function VentasPage() {
     setSelectedVenta(null);
   };
 
-  // Cambiar el estado de la venta a 'pagado'
+  // Cambiar el estado de la venta a 'pagado' y actualizar el stock
+  // Cambiar el estado de la venta a 'pagado' y actualizar el stock
   const handleMarkAsPaid = async (ventaId) => {
     try {
+      // Referencia al documento de la venta
       const ventaRef = doc(firestore, "ventas", ventaId);
+
+      // Obtener los detalles de la venta
+      const ventaSnapshot = await getDoc(ventaRef);
+      if (!ventaSnapshot.exists()) {
+        console.error("La venta no existe.");
+        return;
+      }
+
+      const ventaData = ventaSnapshot.data();
+
+      // Actualizar el stock de cada producto en la venta
+      if (ventaData.productos && Array.isArray(ventaData.productos)) {
+        const batch = writeBatch(firestore);
+
+        // Crear un array de promesas para obtener los productos
+        const productPromises = ventaData.productos.map(async (producto) => {
+          const productoRef = doc(firestore, "items", producto.id);
+          const productoSnapshot = await getDoc(productoRef);
+
+          // Solo proceder si el producto existe
+          if (productoSnapshot.exists()) {
+            const productoData = productoSnapshot.data();
+            const updatedTallas = { ...productoData.tallas };
+
+            // Restar la cantidad vendida de cada talla
+            Object.keys(producto.tallas).forEach((talla) => {
+              if (updatedTallas[talla] !== undefined) {
+                updatedTallas[talla] = Math.max(
+                  0,
+                  updatedTallas[talla] - (producto.tallas[talla] || 0)
+                );
+              }
+            });
+
+            // Actualizar el stock de tallas en el batch
+            batch.update(productoRef, {
+              tallas: updatedTallas,
+            });
+          }
+        });
+
+        // Esperar a que todas las promesas se resuelvan
+        await Promise.all(productPromises);
+
+        // Ejecutar las actualizaciones del stock
+        await batch.commit();
+      }
+
+      // Actualizar el estado de la venta a 'pagado'
       await updateDoc(ventaRef, {
-        status: "pagado", // Cambia el estado a 'pagado'
+        status: "pagado",
       });
-      fetchVentas(); // Vuelve a obtener las ventas para actualizar la lista
+
+      // Volver a obtener las ventas para actualizar la lista
+      fetchVentas();
     } catch (error) {
-      console.error("Error al actualizar el estado de la venta:", error);
+      console.error("Error al actualizar el estado de la venta y el stock:", error);
     }
   };
+
 
   // Función para determinar el color del estado de la venta
   const getStatusColor = (status) => {
@@ -79,17 +132,17 @@ export default function VentasPage() {
           <table className="min-w-full divide-y">
             <thead>
               <tr>
-                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Fecha</th>
-                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Monto</th>
-                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Estado</th>
-                <th className="px-3 py-3 text-left text-xs font-medium  uppercase tracking-wider">Acción</th>
+                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider">Fecha</th>
+                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider">Monto</th>
+                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider">Estado</th>
+                <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider">Acción</th>
               </tr>
             </thead>
             <tbody>
               {ventas.map((venta) => (
                 <tr key={venta.id}>
-                  <td className="px-3 py-4 text-sm ">{venta.date}</td>
-                  <td className="px-3 py-4 text-sm ">{venta.total}</td>
+                  <td className="px-3 py-4 text-sm">{venta.date}</td>
+                  <td className="px-3 py-4 text-sm">{venta.total}</td>
                   <td className="px-3 py-4 text-sm">
                     <span className={`px-2 py-1 rounded ${getStatusColor(venta.status)}`}>
                       {venta.status}

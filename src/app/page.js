@@ -1,12 +1,16 @@
-"use client"
-import React from 'react';
+"use client"; // Asegúrate de agregar esta línea para que funcione el redireccionamiento del cliente
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-function Home() {
-  return (
-    <div>
-      home de la pagina
-    </div>
-  );
-}
+const HomePage = () => {
+  const router = useRouter();
 
-export default Home;
+  useEffect(() => {
+    // Redirigir a otra página al acceder a la raíz
+    router.push('/productos'); // Cambia '/otraPagina' por la ruta a la que quieras redirigir
+  }, [router]);
+
+  return null; // No necesitamos renderizar nada aquí
+};
+
+export default HomePage;

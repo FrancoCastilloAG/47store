@@ -214,7 +214,7 @@ function CartPage() {
             shadow
             auto
             onPress={handlePay}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 text-white"
             disabled={isPaying} // Desactivamos el botón mientras se paga
           >
             {isPaying ? <Spinner size="sm" /> : "Pagar"} {/* Spinner en el botón */}

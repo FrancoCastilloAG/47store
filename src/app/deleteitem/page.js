@@ -1,37 +1,37 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { firestore, storage } from '../firebase';
-import { useRouter } from 'next/navigation'; // Importa el hook de navegación de Next.js
+import { useRouter } from 'next/navigation';
 import { ref, deleteObject } from 'firebase/storage';
-import { Progress } from "@nextui-org/react"; // Importa el componente de barra de progreso de NextUI
+import { Input, Button, Progress } from '@nextui-org/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/modal";
 
-function ItemList() {
+export default function ModificarTallas() {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(false); // Estado de carga
-  const router = useRouter(); // Inicializa el hook de navegación
+  const [loading, setLoading] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updatedTallas, setUpdatedTallas] = useState({});
+  const [updatedValue, setUpdatedValue] = useState(""); // Initialize as an empty string
+
+  const router = useRouter();
 
   useEffect(() => {
-    // Función para redirigir según el rol y la autenticación
     const checkAuthAndRole = () => {
-      const userString = localStorage.getItem('user'); // Obtén el string del objeto JSON almacenado
-      const user = userString ? JSON.parse(userString) : null; // Parsealo a un objeto si existe
-      const isAuthenticated = user !== null; // Verifica si el usuario está autenticado
+      const userString = localStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const isAuthenticated = user !== null;
 
       if (!isAuthenticated) {
-        console.log('No autenticado. Redirigiendo a login...');
         router.push('/login');
-        return;
       } else if (user.role !== 'admin') {
-        console.log('Usuario no es admin. Redirigiendo a productos...');
         router.push('/productos');
-        return;
       }
     };
 
     checkAuthAndRole();
 
-    // Fetch items sólo si el usuario está autenticado y es admin
     const fetchItems = async () => {
       try {
         const querySnapshot = await getDocs(collection(firestore, 'items'));
@@ -46,27 +46,92 @@ function ItemList() {
     };
 
     fetchItems();
-  }, [router]); // Incluye `router` en las dependencias
+  }, [router]);
 
-  // Función para eliminar un item y su imagen
-  const handleDelete = async (id, imgUrl) => {
+  const handleOpenModal = (item) => {
+    setSelectedItem(item);
+    setUpdatedTallas(item.tallas);
+    setUpdatedValue(item.valor.toString()); // Ensure it's a string
+    setIsModalOpen(true);
+  };
+
+  // Function to format input value as Chilean currency
+  const formatCurrency = (amount) => {
+    // Ensure the amount is a string
+    if (typeof amount !== 'string') {
+      amount = amount.toString();
+    }
+
+    // Replace logic to parse the number
+    const number = parseFloat(amount.replace(/\./g, "").replace(",", "."));
+    if (isNaN(number)) return ""; // Return empty string if parsing fails
+    return number.toLocaleString("es-CL");
+  };
+
+  // Function to handle changes in the value field
+  const handleValueChange = (e) => {
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/[^\d,]/g, "").replace(",", ".");
+    setUpdatedValue(numericValue); // Store the raw numeric value, keep as a string
+  };
+
+  const handleUpdateTallas = async () => {
+    if (!selectedItem) return;
+
     try {
-      setLoading(true); // Activamos el estado de carga
-      if (imgUrl) {
-        // Si hay una imagen, eliminarla de Firebase Storage
-        const imageRef = ref(storage, imgUrl);
-        await deleteObject(imageRef);
-      }
+      setLoading(true);
+      const itemRef = doc(firestore, 'items', selectedItem.id);
+      const totalCantidad = Object.values(updatedTallas).reduce((acc, curr) => acc + curr, 0);
 
-      // Eliminar el item de Firestore
+      // Convert the formatted value back to a number before updating Firestore
+      const numberValue = parseFloat(updatedValue.replace(/\./g, "").replace(",", "."));
+
+      // Format the numeric value to get the formatted string for Firestore
+      const formattedValue = formatCurrency(numberValue); // Call directly for formatted value
+
+      await updateDoc(itemRef, {
+        tallas: updatedTallas,
+        cantidad: totalCantidad,
+        valor: numberValue, // Save the numeric value to Firestore
+        valor_formateado: `$${formattedValue}`
+      });
+
+      setItems(prevItems =>
+        prevItems.map(item =>
+          item.id === selectedItem.id ? { 
+            ...item, 
+            tallas: updatedTallas, 
+            cantidad: totalCantidad, 
+            valor: numberValue, 
+            valor_formateado: `$${formattedValue}` 
+          } : item
+        )
+      );
+
+      setIsModalOpen(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.error("Error updating tallas: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteItem = async (id, img) => {
+    try {
+      setLoading(true);
       await deleteDoc(doc(firestore, 'items', id));
 
-      // Filtrar el item eliminado de la lista local
-      setItems(items.filter(item => item.id !== id));
+      if (img) {
+        const imgRef = ref(storage, img);
+        await deleteObject(imgRef);
+      }
+
+      setItems(prevItems => prevItems.filter(item => item.id !== id));
     } catch (error) {
       console.error("Error deleting item: ", error);
     } finally {
-      setLoading(false); // Desactivamos el estado de carga al finalizar el proceso
+      setLoading(false);
     }
   };
 
@@ -89,29 +154,80 @@ function ItemList() {
                 <p className="text-gray-600">Valor: {item.valor_formateado}</p>
                 <p className="text-gray-600">Descripción: {item.descripcion}</p>
                 <p className="text-gray-600">Cantidad: {item.cantidad}</p>
+                <p className="text-gray-600">Tallas disponibles: {JSON.stringify(item.tallas)}</p>
               </div>
             </div>
-            <button
-              onClick={() => handleDelete(item.id, item.img)}
-              className={`mt-4 sm:mt-0 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading} // Deshabilitar el botón cuando se está eliminando
-            >
-              {loading ? "Eliminando..." : "Eliminar"}
-            </button>
-            {/* Mostrar barra de progreso cuando está en carga */}
-            {loading && (
-              <Progress
-                size="sm"
-                isIndeterminate
-                aria-label="Eliminando item..."
-                className="mt-2 w-full"
-              />
-            )}
+            <div className="flex flex-col items-center sm:flex-row">
+              <button
+                onClick={() => handleOpenModal(item)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300 mb-2 sm:mb-0 sm:mr-2"
+              >
+                Modificar Tallas
+              </button>
+              <button
+                onClick={() => handleDeleteItem(item.id, item.img)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
+                disabled={loading}
+              >
+                Eliminar Proyecto
+              </button>
+            </div>
           </li>
         ))}
       </ul>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <ModalContent>
+          <ModalHeader>
+            <h3>Modificar Tallas</h3>
+          </ModalHeader>
+          <ModalBody>
+            <div className="mb-4">
+              <label className="block mb-1">Valor</label>
+              <Input
+                type="text" // Use text to allow formatted input
+                value={updatedValue}
+                onChange={handleValueChange} // Use the new change handler
+                className="w-full"
+              />
+            </div>
+            {updatedTallas && Object.keys(updatedTallas).map(talla => (
+              <div key={talla} className="flex justify-between items-center">
+                <p>{talla.toUpperCase()}</p>
+                <Input
+                  type="number"
+                  value={updatedTallas[talla]}
+                  onChange={(e) =>
+                    setUpdatedTallas({
+                      ...updatedTallas,
+                      [talla]: parseInt(e.target.value, 10)
+                    })
+                  }
+                  min={0}
+                  className="w-20"
+                />
+              </div>
+            ))}
+          </ModalBody>
+          <ModalFooter>
+            <Button auto onClick={handleUpdateTallas} disabled={loading}>
+              {loading ? "Guardando..." : "Guardar"}
+            </Button>
+            <Button auto flat color="error" onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {loading && (
+        <Progress
+          size="sm"
+          isIndeterminate
+          aria-label="Procesando..."
+          className="mt-2 w-full"
+        />
+      )}
     </div>
   );
 }
-
-export default ItemList;
