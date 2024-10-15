@@ -54,6 +54,7 @@ function Products() {
     router.push(`/ProductDetail/${itemId}`);
   };
 
+
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       {loading && (

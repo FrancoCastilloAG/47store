@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { firestore, storage } from "../../firebase";
@@ -9,6 +8,9 @@ import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../../CartContext";
 import { useUser } from "../../UserContext";
 import Image from "next/image";
+import Slider from "react-slick"; // Importar react-slick
+import "slick-carousel/slick/slick.css"; // Importar estilos de Slick
+import "slick-carousel/slick/slick-theme.css"; // Importar tema de Slick
 
 function ProductDetail() {
   const { id } = useParams();
@@ -35,10 +37,15 @@ function ProductDetail() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const productData = docSnap.data();
+          // Suponiendo que `img` es un array de imágenes
           if (productData.img) {
-            const storageRef = ref(storage, productData.img);
-            const imageUrl = await getDownloadURL(storageRef);
-            productData.imageUrl = imageUrl;
+            const imageUrls = await Promise.all(
+              productData.img.map(async (img) => {
+                const storageRef = ref(storage, img);
+                return await getDownloadURL(storageRef);
+              })
+            );
+            productData.imageUrls = imageUrls; // Guardar las URLs en un nuevo campo
           }
           setProduct(productData);
 
@@ -96,8 +103,7 @@ function ProductDetail() {
     if (product && Object.values(selectedTallas).some((count) => count > 0)) {
       setIsAddingToCart(true);
       try {
-        console.log("producto iamgen url  ", product.imageUrl)
-        await addCartItem(product.id, selectedTallas, product.imageUrl);
+        await addCartItem(product.id, selectedTallas, product.imageUrls[0]); // Usar la primera imagen como referencia
       } catch (error) {
         console.error("Error adding to cart:", error);
       } finally {
@@ -122,17 +128,35 @@ function ProductDetail() {
     return <div className="text-center text-black">Producto no encontrado.</div>;
   }
 
+  // Configuración del carrusel
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8 min-h-screen">
       <div className="flex flex-col md:flex-row max-w-4xl mx-auto rounded-lg shadow-md overflow-hidden">
-        <div className="md:w-1/2 relative h-48 md:h-96">
-          {product.imageUrl && (
-            <Image
-              src={product.imageUrl}
-              alt={product.nombre}
-              layout="fill"
-              objectFit="cover"
-            />
+        <div className="md:w-1/2">
+          {product.imageUrls && (
+            <Slider {...sliderSettings}>
+              {product.imageUrls.map((url, index) => (
+                <div key={index} className="relative h-80 md:h-120">
+                  <Image
+                    src={url}
+                    alt={product.nombre}
+                    layout="fill"
+                    objectFit="contain" // Cambiar a "contain" para mostrar la imagen completa
+                    className="object-center" // Centrar la imagen
+                  />
+                </div>
+              ))}
+            </Slider>
           )}
         </div>
         <div className="md:w-1/2 p-4 md:p-6 flex flex-col justify-between">
@@ -177,7 +201,7 @@ function ProductDetail() {
                 auto
                 size="lg"
                 onPress={handleAddToCart}
-                disabled={isButtonDisabled || isAddingToCart} // Disable during the add-to-cart process
+                disabled={isButtonDisabled || isAddingToCart}
                 className={`w-full ${isButtonDisabled ? "bg-gray-500" : ""}`}
               >
                 {isAddingToCart ? <Spinner size="sm" color="default" /> : "Agregar al Carrito"}

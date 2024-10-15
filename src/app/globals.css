@@ -8,3 +8,15 @@
 html, body {
   @apply text-black bg-white;
 }
+/* styles/globals.css o un archivo CSS específico */
+@keyframes float {
+  0% {
+      transform: translateY(0px);
+  }
+  50% {
+      transform: translateY(-10px);
+  }
+  100% {
+      transform: translateY(0px);
+  }
+}

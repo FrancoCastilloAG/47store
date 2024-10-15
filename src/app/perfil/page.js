@@ -71,6 +71,14 @@ export default function ProfilePage() {
     }
   };
 
+  // Function to handle WhatsApp message
+  const handleWhatsAppMessage = (order) => {
+    const message = `Hola, tengo preguntas sobre mi pedido ${order.id} con un total de ${order.total}.`;
+    const phoneNumber = '+56989013937'; // Reemplaza con el número de teléfono de destino
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="min-h-screen max-w-4xl mx-auto p-4 sm:p-6">
       {user ? (
@@ -114,7 +122,7 @@ export default function ProfilePage() {
                 </thead>
                 <tbody>
                   {orders.map((order) => (
-                    <tr key={order.id}>
+                    <tr key={order.id} className="border-t border-b border-gray-300"> {/* Agregar clase de borde */}
                       <td className="px-3 py-4 text-sm text-gray-400">{order.date}</td>
                       <td className="px-3 py-4 text-sm text-gray-400">{order.total}</td>
                       <td className="px-3 py-4 text-sm text-white">
@@ -122,27 +130,36 @@ export default function ProfilePage() {
                           {order.status}
                         </span>
                       </td>
-                      <td className="px-3 py-4 text-sm flex space-x-2"> {/* Flex for alignment */}
-                        <button
-                          onClick={() => handleViewDetails(order)}
-                          className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        >
-                          Ver detalle
-                        </button>
-                        {/* Download button next to view details */}
-                        {order.imageUrl && (
-                          <a
-                            href={order.imageUrl} // Ensure this is the correct URL
-                            download // This attribute triggers download
-                            className="px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                      <td className="px-3 py-4 text-sm">
+                        <div className="flex flex-col space-y-2">
+                          <button
+                            onClick={() => handleViewDetails(order)}
+                            className="px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                           >
-                            Descargar Imagen
-                          </a>
-                        )}
+                            Ver detalle
+                          </button>
+                          {order.imageUrl && (
+                            <a
+                              href={order.imageUrl}
+                              download
+                              className="px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                            >
+                              Descargar Imagen
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleWhatsAppMessage(order)}
+                            className="px-4 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                          >
+                            Enviar a WhatsApp
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
+
+
               </table>
             </div>
           </div>

@@ -17,7 +17,7 @@ function AddItem() {
     l: 0,
     xl: 0,
   });
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]); // Change to an array
   const [itemId, setItemId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formValid, setFormValid] = useState(false);
@@ -36,14 +36,14 @@ function AddItem() {
     }
   }, [router]);
 
-  // Función para formatear el valor de entrada como peso chileno
+  // Function to format the value as Chilean pesos
   const formatCurrency = (amount) => {
     const number = parseFloat(amount.replace(/\./g, "").replace(",", "."));
     if (isNaN(number)) return "";
     return number.toLocaleString("es-CL");
   };
 
-  // Función para manejar el cambio en el campo de valor
+  // Handle change in the value field
   const handleValueChange = (e) => {
     const inputValue = e.target.value;
     const numericValue = inputValue.replace(/[^\d,]/g, "").replace(",", ".");
@@ -58,18 +58,18 @@ function AddItem() {
     }));
   };
 
-  // Validar el formulario
+  // Validate the form
   useEffect(() => {
     const allFieldsFilled =
       nombre &&
       valor &&
       descripcion &&
-      Object.values(tallas).every((talla) => talla >= 0); // Verificar que las tallas no sean negativas
+      Object.values(tallas).every((talla) => talla >= 0); // Check that sizes are not negative
     setFormValid(allFieldsFilled);
   }, [nombre, valor, descripcion, tallas]);
 
   const handleUpload = async () => {
-    if (!formValid) return; // No hacer nada si el formulario no es válido
+    if (!formValid) return; // Do nothing if the form is not valid
 
     setLoading(true);
     try {
@@ -92,20 +92,23 @@ function AddItem() {
       const generatedId = docRef.id;
       itemData.id = generatedId;
 
-      if (image) {
-        const storageRef = ref(storage, `images/${generatedId}`);
-        await uploadBytes(storageRef, image);
-        const imageUrl = await getDownloadURL(storageRef);
-        itemData.img = imageUrl;
+      // Upload multiple images
+      if (images.length > 0) {
+        const imageUrls = [];
+        for (const image of images) {
+          const storageRef = ref(storage, `images/${generatedId}/${image.name}`);
+          await uploadBytes(storageRef, image);
+          const imageUrl = await getDownloadURL(storageRef);
+          imageUrls.push(imageUrl);
+        }
+        itemData.img = imageUrls; // Store the array of image URLs
       }
 
-      await updateDoc(
-        doc(collection(firestore, "items"), generatedId),
-        itemData
-      );
+      await updateDoc(doc(collection(firestore, "items"), generatedId), itemData);
 
-      console.log("Documento agregado con ID: ", generatedId);
+      console.log("Document added with ID: ", generatedId);
       setItemId(generatedId);
+      // Reset form fields
       setNombre("");
       setValor("");
       setDescripcion("");
@@ -116,18 +119,18 @@ function AddItem() {
         l: 0,
         xl: 0,
       });
-      setImage(null);
+      setImages([]); // Clear images
     } catch (error) {
-      console.error("Error al agregar documento: ", error);
+      console.error("Error adding document: ", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleImageChange = (e) => {
-    if (e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
+    // Allow selection of multiple files
+    const files = Array.from(e.target.files);
+    setImages(files);
   };
 
   return (
@@ -161,7 +164,7 @@ function AddItem() {
             className="w-full text-black"
           />
         </div>
-        {/* Ajustamos el grid responsivo */}
+        {/* Responsive grid for sizes */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {Object.keys(tallas).map((talla) => (
             <div key={talla} className="flex flex-col items-center">
@@ -181,6 +184,7 @@ function AddItem() {
           <Input
             type="file"
             onChange={handleImageChange}
+            multiple // Allow multiple file uploads
             className="w-full text-black"
           />
         </div>

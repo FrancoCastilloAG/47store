@@ -167,11 +167,11 @@ function CartPage() {
       <p h1 className="text-3xl font-bold text-white-100 mb-6 text-center">
         Carrito de Compras
       </p>
+      <p className="text-lg font-semibold text-red-500">Mandar imagen generada a whatsapp para confirmar la venta.(imagen del pedido en el perfil)</p>
       <div className="space-y-6" ref={cartRef}>
         <p className="text-lg font-semibold text-gray-500">Nombre del comprador: {user?.displayName}</p>
         <p className="text-lg font-semibold text-gray-500">Total a pagar: ${total.toFixed(3)}</p>
         <p className="text-lg font-semibold text-gray-500">ID de venta: {ventaId}</p>
-
         {cartDetails.map((item) => (
           <Card key={item.id} className="p-4 shadow-md">
             <div className="flex flex-col md:flex-row items-center">

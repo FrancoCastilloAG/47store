@@ -1,12 +1,22 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react'; // Importa useEffect
 import { auth, provider, signInWithPopup, firestore } from '../firebase'; // Asegúrate de que firestore esté importado
 import { useUser } from '../UserContext'; // Importa el contexto de usuario
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { FaGoogle } from 'react-icons/fa'; // Importa el ícono de Google
+import { useRouter } from 'next/navigation'; // Importa useRouter para redirección
 
 const Login = () => {
-  const { updateUser } = useUser(); // Obtén updateUser del contexto
+  const { updateUser, user } = useUser(); // Obtén updateUser y user del contexto
+  const router = useRouter(); // Inicializa useRouter
+
+  useEffect(() => {
+    // Verifica si el usuario ya está autenticado
+    if (user) {
+      // Redirige al usuario a la página de productos si está logueado
+      router.push('/productos');
+    }
+  }, [user, router]);
 
   const handleSignIn = async () => {
     try {
@@ -54,6 +64,9 @@ const Login = () => {
         role: userDoc.exists() ? userDoc.data().role : "user", // Guarda el rol del usuario
         photoURL: user.photoURL,
       });
+
+      // Redirige a la página de productos después de iniciar sesión
+      router.push('/productos');
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
