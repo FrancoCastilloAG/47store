@@ -7,7 +7,7 @@ const HomePage = () => {
 
   useEffect(() => {
     // Redirigir a otra página al acceder a la raíz
-    router.push('/productos'); // Cambia '/otraPagina' por la ruta a la que quieras redirigir
+    router.push('/balmain'); // Cambia '/otraPagina' por la ruta a la que quieras redirigir
   }, [router]);
 
   return null; // No necesitamos renderizar nada aquí
