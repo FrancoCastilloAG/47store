@@ -25,7 +25,7 @@ export default function Navigationbar() {
   const { user, handleLogout } = useUser();
   const { getTotalItemCount } = useCart();
 
-  const menuItems = ["productos"];
+  const menuItems = ["balmain",'tommy hilfiger',"guess","ropa americana"];
 
   return (
     <Navbar onMenuOpenChange={setIsMenuOpen}>

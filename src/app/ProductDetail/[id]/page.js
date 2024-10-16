@@ -8,9 +8,11 @@ import { ref, getDownloadURL } from "firebase/storage";
 import { useCart } from "../../CartContext";
 import { useUser } from "../../UserContext";
 import Image from "next/image";
-import Slider from "react-slick"; // Importar react-slick
-import "slick-carousel/slick/slick.css"; // Importar estilos de Slick
-import "slick-carousel/slick/slick-theme.css"; // Importar tema de Slick
+import Slider from "react-slick";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 function ProductDetail() {
   const { id } = useParams();
@@ -37,7 +39,6 @@ function ProductDetail() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const productData = docSnap.data();
-          // Suponiendo que `img` es un array de imágenes
           if (productData.img) {
             const imageUrls = await Promise.all(
               productData.img.map(async (img) => {
@@ -45,7 +46,7 @@ function ProductDetail() {
                 return await getDownloadURL(storageRef);
               })
             );
-            productData.imageUrls = imageUrls; // Guardar las URLs en un nuevo campo
+            productData.imageUrls = imageUrls;
           }
           setProduct(productData);
 
@@ -103,7 +104,7 @@ function ProductDetail() {
     if (product && Object.values(selectedTallas).some((count) => count > 0)) {
       setIsAddingToCart(true);
       try {
-        await addCartItem(product.id, selectedTallas, product.imageUrls[0]); // Usar la primera imagen como referencia
+        await addCartItem(product.id, selectedTallas, product.imageUrls[0]);
       } catch (error) {
         console.error("Error adding to cart:", error);
       } finally {
@@ -113,7 +114,6 @@ function ProductDetail() {
   };
 
   const totalValue = calculateTotalValue();
-
   const isButtonDisabled = !Object.values(selectedTallas).some((count) => count > 0);
 
   if (loading) {
@@ -128,14 +128,13 @@ function ProductDetail() {
     return <div className="text-center text-black">Producto no encontrado.</div>;
   }
 
-  // Configuración del carrusel
   const sliderSettings = {
-    dots: true,
-    infinite: true,
+    dots: product.imageUrls && product.imageUrls.length > 1,
+    infinite: product.imageUrls && product.imageUrls.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplay: true,
+    autoplay: product.imageUrls && product.imageUrls.length > 1,
     autoplaySpeed: 3000,
   };
 
@@ -143,20 +142,34 @@ function ProductDetail() {
     <div className="p-4 md:p-6 lg:p-8 min-h-screen">
       <div className="flex flex-col md:flex-row max-w-4xl mx-auto rounded-lg shadow-md overflow-hidden">
         <div className="md:w-1/2">
-          {product.imageUrls && (
+          {product.imageUrls && product.imageUrls.length > 1 ? (
             <Slider {...sliderSettings}>
               {product.imageUrls.map((url, index) => (
                 <div key={index} className="relative h-80 md:h-120">
-                  <Image
-                    src={url}
-                    alt={product.nombre}
-                    layout="fill"
-                    objectFit="contain" // Cambiar a "contain" para mostrar la imagen completa
-                    className="object-center" // Centrar la imagen
-                  />
+                  <Zoom>
+                    <Image
+                      src={url}
+                      alt={product.nombre}
+                      layout="fill"
+                      objectFit="contain"
+                      className="object-center"
+                    />
+                  </Zoom>
                 </div>
               ))}
             </Slider>
+          ) : (
+            <div className="relative h-80 md:h-120">
+              <Zoom>
+                <Image
+                  src={product.imageUrls[0]}
+                  alt={product.nombre}
+                  layout="fill"
+                  objectFit="contain"
+                  className="object-center"
+                />
+              </Zoom>
+            </div>
           )}
         </div>
         <div className="md:w-1/2 p-4 md:p-6 flex flex-col justify-between">

@@ -1,14 +1,13 @@
-/* global.css */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Aplica el fondo negro y el texto blanco de forma global */
+
 html, body {
   @apply text-black bg-white;
 }
-/* styles/globals.css o un archivo CSS específico */
+
 @keyframes float {
   0% {
       transform: translateY(0px);

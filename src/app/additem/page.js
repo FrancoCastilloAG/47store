@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { collection, addDoc, updateDoc, doc } from "firebase/firestore";
 import { storage, firestore } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { Input, Progress, Button } from "@nextui-org/react";
+import { Input, Progress, Button, Select } from "@nextui-org/react";
 
 function AddItem() {
   const [nombre, setNombre] = useState("");
@@ -17,7 +17,8 @@ function AddItem() {
     l: 0,
     xl: 0,
   });
-  const [images, setImages] = useState([]); // Change to an array
+  const [images, setImages] = useState([]);
+  const [brand, setBrand] = useState(""); // State for selected brand
   const [itemId, setItemId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [formValid, setFormValid] = useState(false);
@@ -36,14 +37,12 @@ function AddItem() {
     }
   }, [router]);
 
-  // Function to format the value as Chilean pesos
   const formatCurrency = (amount) => {
     const number = parseFloat(amount.replace(/\./g, "").replace(",", "."));
     if (isNaN(number)) return "";
     return number.toLocaleString("es-CL");
   };
 
-  // Handle change in the value field
   const handleValueChange = (e) => {
     const inputValue = e.target.value;
     const numericValue = inputValue.replace(/[^\d,]/g, "").replace(",", ".");
@@ -58,18 +57,18 @@ function AddItem() {
     }));
   };
 
-  // Validate the form
   useEffect(() => {
     const allFieldsFilled =
       nombre &&
       valor &&
       descripcion &&
-      Object.values(tallas).every((talla) => talla >= 0); // Check that sizes are not negative
+      brand && // Ensure brand is selected
+      Object.values(tallas).every((talla) => talla >= 0);
     setFormValid(allFieldsFilled);
-  }, [nombre, valor, descripcion, tallas]);
+  }, [nombre, valor, descripcion, brand, tallas]);
 
   const handleUpload = async () => {
-    if (!formValid) return; // Do nothing if the form is not valid
+    if (!formValid) return;
 
     setLoading(true);
     try {
@@ -85,6 +84,7 @@ function AddItem() {
         descripcion: descripcion,
         cantidad: totalCantidad,
         tallas: tallas,
+        brand: brand, // Include the selected brand in the item data
         valor_formateado: `$${formatCurrency(valor)}`,
       };
 
@@ -101,7 +101,7 @@ function AddItem() {
           const imageUrl = await getDownloadURL(storageRef);
           imageUrls.push(imageUrl);
         }
-        itemData.img = imageUrls; // Store the array of image URLs
+        itemData.img = imageUrls;
       }
 
       await updateDoc(doc(collection(firestore, "items"), generatedId), itemData);
@@ -119,7 +119,8 @@ function AddItem() {
         l: 0,
         xl: 0,
       });
-      setImages([]); // Clear images
+      setBrand(""); // Reset the brand selection
+      setImages([]);
     } catch (error) {
       console.error("Error adding document: ", error);
     } finally {
@@ -128,7 +129,6 @@ function AddItem() {
   };
 
   const handleImageChange = (e) => {
-    // Allow selection of multiple files
     const files = Array.from(e.target.files);
     setImages(files);
   };
@@ -164,11 +164,27 @@ function AddItem() {
             className="w-full text-black"
           />
         </div>
-        {/* Responsive grid for sizes */}
+        <div>
+          <select
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            className="w-full p-2 border rounded-md"
+          >
+            <option value="" disabled>
+              Seleccionar Marca
+            </option>
+            <option value="balmain">Balmain</option>
+            <option value="tommy hilfiger">Tommy Hilfiger</option>
+            <option value="guess">Guess</option>
+            <option value="ropa americana">Ropa Americana</option>
+          </select>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {Object.keys(tallas).map((talla) => (
             <div key={talla} className="flex flex-col items-center">
-              <label className="text-sm font-medium text-white-700">{talla.toUpperCase()}</label>
+              <label className="text-sm font-medium text-white-700">
+                {talla.toUpperCase()}
+              </label>
               <Input
                 type="number"
                 name={talla}
@@ -184,7 +200,7 @@ function AddItem() {
           <Input
             type="file"
             onChange={handleImageChange}
-            multiple // Allow multiple file uploads
+            multiple
             className="w-full text-black"
           />
         </div>

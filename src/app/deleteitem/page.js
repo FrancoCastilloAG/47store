@@ -13,7 +13,8 @@ export default function ModificarTallas() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatedTallas, setUpdatedTallas] = useState({});
-  const [updatedValue, setUpdatedValue] = useState(""); // Initialize as an empty string
+  const [updatedValue, setUpdatedValue] = useState("");
+  const [updatedDescription, setUpdatedDescription] = useState(""); // New state for description
 
   const router = useRouter();
 
@@ -51,28 +52,25 @@ export default function ModificarTallas() {
   const handleOpenModal = (item) => {
     setSelectedItem(item);
     setUpdatedTallas(item.tallas);
-    setUpdatedValue(item.valor.toString()); // Ensure it's a string
+    setUpdatedValue(item.valor.toString());
+    setUpdatedDescription(item.descripcion); // Set initial description value
     setIsModalOpen(true);
   };
 
-  // Function to format input value as Chilean currency
   const formatCurrency = (amount) => {
-    // Ensure the amount is a string
     if (typeof amount !== 'string') {
       amount = amount.toString();
     }
 
-    // Replace logic to parse the number
     const number = parseFloat(amount.replace(/\./g, "").replace(",", "."));
-    if (isNaN(number)) return ""; // Return empty string if parsing fails
+    if (isNaN(number)) return "";
     return number.toLocaleString("es-CL");
   };
 
-  // Function to handle changes in the value field
   const handleValueChange = (e) => {
     const inputValue = e.target.value;
     const numericValue = inputValue.replace(/[^\d,]/g, "").replace(",", ".");
-    setUpdatedValue(numericValue); // Store the raw numeric value, keep as a string
+    setUpdatedValue(numericValue);
   };
 
   const handleUpdateTallas = async () => {
@@ -83,17 +81,15 @@ export default function ModificarTallas() {
       const itemRef = doc(firestore, 'items', selectedItem.id);
       const totalCantidad = Object.values(updatedTallas).reduce((acc, curr) => acc + curr, 0);
 
-      // Convert the formatted value back to a number before updating Firestore
       const numberValue = parseFloat(updatedValue.replace(/\./g, "").replace(",", "."));
-
-      // Format the numeric value to get the formatted string for Firestore
-      const formattedValue = formatCurrency(numberValue); // Call directly for formatted value
+      const formattedValue = formatCurrency(numberValue);
 
       await updateDoc(itemRef, {
         tallas: updatedTallas,
         cantidad: totalCantidad,
-        valor: numberValue, // Save the numeric value to Firestore
-        valor_formateado: `$${formattedValue}`
+        valor: numberValue,
+        valor_formateado: `$${formattedValue}`,
+        descripcion: updatedDescription // Update the description
       });
 
       setItems(prevItems =>
@@ -103,7 +99,8 @@ export default function ModificarTallas() {
             tallas: updatedTallas, 
             cantidad: totalCantidad, 
             valor: numberValue, 
-            valor_formateado: `$${formattedValue}` 
+            valor_formateado: `$${formattedValue}`, 
+            descripcion: updatedDescription 
           } : item
         )
       );
@@ -179,15 +176,24 @@ export default function ModificarTallas() {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <ModalContent>
           <ModalHeader>
-            <h3>Modificar Tallas</h3>
+            <h3>Modificar Tallas y Descripción</h3>
           </ModalHeader>
           <ModalBody>
             <div className="mb-4">
               <label className="block mb-1">Valor</label>
               <Input
-                type="text" // Use text to allow formatted input
+                type="text"
                 value={updatedValue}
-                onChange={handleValueChange} // Use the new change handler
+                onChange={handleValueChange}
+                className="w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1">Descripción</label>
+              <Input
+                type="text"
+                value={updatedDescription}
+                onChange={(e) => setUpdatedDescription(e.target.value)}
                 className="w-full"
               />
             </div>

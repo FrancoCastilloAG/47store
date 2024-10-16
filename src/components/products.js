@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
-import { firestore, storage } from "../firebase";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { firestore, storage } from "../../src/app/firebase";
 import {
   Card,
   CardBody,
@@ -10,29 +10,35 @@ import {
   Spinner,
 } from "@nextui-org/react";
 import { ref, getDownloadURL } from "firebase/storage";
-import { useCart } from "../CartContext";
+import { useCart } from "../../src/app/CartContext";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Importar el componente Image de Next.js
+import Image from "next/image";
 
-function Products() {
-  const { addCartItem } = useCart(); // Obtener la función addCartItem del contexto del carrito
+function Products({ brand }) {
+  const { addCartItem } = useCart();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    // Create a query to filter items by the specified brand
+    const itemsCollection = collection(firestore, "items");
+    const itemsQuery = brand ? query(itemsCollection, where("brand", "==", brand)) : itemsCollection;
+
     const unsubscribe = onSnapshot(
-      collection(firestore, "items"),
+      itemsQuery,
       async (snapshot) => {
         const itemsData = [];
         await Promise.all(
           snapshot.docs.map(async (doc) => {
             const itemData = doc.data();
-            if (itemData.img) {
-              const storageRef = ref(storage, itemData.img);
+            if (itemData.img && itemData.img.length > 0) {
+              // Get the first image from the array if available
+              const storageRef = ref(storage, itemData.img[0]);
               const imageUrl = await getDownloadURL(storageRef);
               itemData.imageUrl = imageUrl;
             }
+            itemData.id = doc.id; // Add document ID to the item data
             itemsData.push(itemData);
           })
         );
@@ -47,13 +53,11 @@ function Products() {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [brand]); // Re-fetch when the brand changes
 
   const handleAddToCart = (itemId) => {
-    // Redirige a la página de detalles del producto con el ID
     router.push(`/ProductDetail/${itemId}`);
   };
-
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -69,28 +73,28 @@ function Products() {
             key={index}
             isPressable
             onClick={() => handleAddToCart(item.id)}
-            className="transition-transform transform hover:scale-105" // Añadir un efecto hover
+            className="transition-transform transform hover:scale-105"
           >
             <CardBody className="p-0">
               {item.imageUrl && (
-                <div className="relative w-full h-[300px] overflow-hidden"> {/* Altura fija para el contenedor de la imagen */}
+                <div className="relative w-full h-[300px] overflow-hidden">
                   <Image
                     src={item.imageUrl}
                     alt={item.nombre}
                     layout="fill"
-                    objectFit="contain" // Cambiar a "contain" para que la imagen se ajuste completamente
-                    className="transition-transform duration-300 ease-in-out" // Añadir una transición a la imagen
+                    objectFit="contain"
+                    className="transition-transform duration-300 ease-in-out"
                   />
                 </div>
               )}
             </CardBody>
-            <CardFooter> {/* Padding para el footer */}
+            <CardFooter>
               <div>
                 <b>{item.nombre}</b>
                 {item.cantidad > 0 ? (
                   <p>{item.valor_formateado}</p>
                 ) : (
-                  <p className="text-red-500">Fuera de stock</p> // Mensaje en rojo si está fuera de stock
+                  <p className="text-red-500">Fuera de stock</p>
                 )}
               </div>
             </CardFooter>
@@ -98,7 +102,6 @@ function Products() {
         ))}
       </div>
     </div>
-
   );
 }
 
